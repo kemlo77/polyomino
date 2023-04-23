@@ -1,0 +1,11 @@
+{
+    "extension": [
+        "ts"
+    ],
+    "reporter": "spec",
+    "files": "test/**/*.ts",
+    "require": [
+        "ts-node/register",
+        "source-map-support/register"
+    ]
+}
