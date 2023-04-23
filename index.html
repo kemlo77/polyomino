@@ -1,0 +1,596 @@
+<html>
+<head>
+<script type="application/javascript">
+	var WIDTH;
+	var HEIGHT;
+	var kvadratBredd=3;
+	var variantGeneration = new Array();
+	var generationLevel = new Array();
+	var startMatris = new Array();
+	var calculationTime = new Array();
+	calculationTime.push("0s");
+	startMatris.push([1]);
+	generationLevel.push(startMatris);
+	variantGeneration.push(generationLevel);
+	var startMeasuredTime=0;
+	
+	var variantGenerationSymInfo = new Array();
+	var generationLevelSymInfo = new Array();
+	generationLevelSymInfo.push([1]);
+	variantGenerationSymInfo.push(generationLevelSymInfo);
+
+	
+	function getListValue(){
+		generationSelect = document.getElementById("generationListan");
+		returnValdGeneration = generationSelect.options[generationSelect.selectedIndex].value;
+		return returnValdGeneration;
+	}
+	
+	function drawShapes() {
+
+		valdGeneration = getListValue();
+		
+		//arrayen som formerna ligger i
+		shapesArray=variantGeneration[valdGeneration-1];
+		//arrayen som talar om vilken symmetri formen har
+		symmetryArray=variantGenerationSymInfo[valdGeneration-1];
+
+		vitKant=0;
+		offset_x=kvadratBredd;
+		offset_y=kvadratBredd;
+		//max höjd för aktuel rad. Används för att ekonomisera utrymmet
+		maxShapeHeight=0;
+	
+
+		var canvas = document.getElementById("canvas");
+		// tar området som kan ritas ut på
+		HEIGHT=canvas.offsetHeight;
+		WIDTH=canvas.offsetWidth;
+		if (canvas.getContext) {
+
+			var ctx = canvas.getContext("2d");
+			ctx.clearRect(0,0,WIDTH,HEIGHT);
+			ctx.fillStyle = "rgba(170,170,170,1)";
+			ctx.save();			
+			ctx.translate(offset_x,offset_y);
+
+			//för alla shapes (att rita ut)
+			for(z=0;z<shapesArray.length;z++){
+				formen=shapesArray[z];			
+
+				
+				//sätt vilken färg som ska användas
+				if(symmetryArray[z]==0){
+					ctx.fillStyle = "rgba(170,170,170,1)";
+				}
+				else{
+					//om det är en spegel-symmetrisk kring x- eller y-axeln
+					if(symmetryArray[z]==1||symmetryArray[z]==2){
+						ctx.fillStyle = "rgba(221,153,153,1)";
+					}
+					else{
+						//om spegel-symmetrisk kring diagonalerna
+						if(symmetryArray[z]==4||symmetryArray[z]==8){
+							ctx.fillStyle = "rgba(170,221,170,1)";
+						}
+						else{
+							//rotations-symmetri (180)
+							if(symmetryArray[z]==16){
+								ctx.fillStyle = "rgba(170,170,221,1)";
+							}
+							else{
+								if(symmetryArray[z]==19){
+									ctx.fillStyle = "rgba(204,170,204,1)";
+								}
+								else{
+									if(symmetryArray[z]==28){
+										ctx.fillStyle = "rgba(255,153,119,1)";
+									}
+									else{
+										if(symmetryArray[z]==63){
+											ctx.fillStyle = "rgba(136,204,204,1)";
+										}
+										else{
+											if(symmetryArray[z]==48){
+												ctx.fillStyle = "rgba(255,204,102,1)";
+											}
+											else{
+												ctx.fillStyle = "rgba(0,0,255,1)";
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					
+				}				
+				
+				
+//if(symmetryArray[z]!==0){
+				//ritar ut 
+				for(i=0;i<formen.length;i++){
+					//sparar max antal kvadrater på höjden
+					if(formen.length>maxShapeHeight){maxShapeHeight=formen.length}
+					//ritar ut alla bitar
+					for(j=0;j<formen[0].length;j++){
+						if(formen[i][j]>0){
+							ctx.fillRect (j*kvadratBredd, i*kvadratBredd, kvadratBredd-vitKant, kvadratBredd-vitKant);
+						}
+					}
+				
+				}
+				//om bredden är nådd till höger. så ska det bli en ny rad
+				offset_x+=(formen[0].length+1)*kvadratBredd;
+				if(offset_x>WIDTH-(formen[0].length+1)*kvadratBredd){
+					offset_x=kvadratBredd;
+					offset_y+=(maxShapeHeight+1)*kvadratBredd;
+					maxShapeHeight=0;
+				
+				}
+//}
+				
+				ctx.restore();
+				ctx.save();
+				ctx.translate(offset_x,offset_y);							
+
+
+
+			}
+			
+
+			
+			ctx.restore();
+		}
+	}	
+
+	
+	function starta(){
+		tick();
+		fluffTecken=0;
+
+		
+		var generationLevel = new Array();
+		var generationLevelSymInfo = new Array();
+		//att jämföra med alla på den föregående nivån
+		for(v=0;v<variantGeneration[variantGeneration.length-1].length;v++){//inre loop
+			fluffadMatris=fluffaIn(variantGeneration[variantGeneration.length-1][v]);
+			//testa alla positioner för ny "kvadratdel"
+			for(z=0;z<fluffadMatris.length;z++){
+				for(d=0;d<fluffadMatris[0].length;d++){
+					//om det är en tom cell testar vi på den
+					if(fluffadMatris[z][d]==fluffTecken){
+						//bara intressant att kolla om den har grannar
+						if(hasNeighbours(z,d,fluffadMatris)){
+							//sätter en temporär markering i rutan som kollas
+							fluffadMatris[z][d]=1; 
+							//om det inte finns NÅT sparat för den leveln så är det bara att spara
+							if(generationLevel.length==0){
+								matrixToStore=deFluffMatris(fluffadMatris);
+								generationLevel.push(matrixToStore);
+								generationLevelSymInfo.push(calculateSymmetry(matrixToStore));
+								//console.log("lägger till ny 1");
+							}
+							else{
+								//jämföra med alla på befintlig generation level
+								hittarMatchning=false;
+								matrixToCompare=deFluffMatris(fluffadMatris);
+								for(h=0;h<generationLevel.length;h++){
+									hittarMatchning=compareMatrix(generationLevel[h],matrixToCompare);
+									if(hittarMatchning){break;}//om den redan fanns kan man avbryta
+								}
+								if(!hittarMatchning){//sparar om det inte finns nån matchning
+									theSymmetryNumber=calculateSymmetry(matrixToCompare);
+									generationLevelSymInfo.push(theSymmetryNumber);
+									// om den är enkelt symetrisk kring x-axeln eller kring 135 grader roteras den 90 grader innan den sparas.
+									if(theSymmetryNumber==2||theSymmetryNumber==4){generationLevel.push(roteraMatrisMoturs90(matrixToCompare))}
+									else{generationLevel.push(matrixToCompare)}
+								}
+								else{
+								}
+							}
+							fluffadMatris[z][d]=fluffTecken; //återställer fluffadMatris för att återanvända
+						}
+						else{
+						}
+					}
+				}
+			}
+		}//inre loop slut		
+		
+		variantGeneration.push(generationLevel);
+		variantGenerationSymInfo.push(generationLevelSymInfo);
+		
+		
+		var generationSelect = document.getElementById("generationListan");
+		generationSelect.options[generationSelect.options.length] = new Option(variantGeneration.length.toString(), variantGeneration.length);
+		
+		//select the added value in the list
+		generationSelect.selectedIndex = variantGeneration.length-1;
+		//note how long it took to calculate
+
+		timePassed=tock();
+		//console.log("färdigberäknat generation "+variantGeneration.length+" ("+generationLevel.length+" st)"+" tidsåtgång: "+timePassed);
+		calculationTime.push(timePassed);
+		
+		//update info and repaint
+		listChange();
+		
+
+
+	}
+	
+	function calculateSymmetry(matris){
+		var symmetryNumber=0;
+
+		if(yAxisSymmetry(matris)                ){symmetryNumber+=1}
+		if(xAxisSymmetry(matris)                ){symmetryNumber+=2}		
+		
+		if(diagonalReflectionSymmetry135(matris)){symmetryNumber+=4}
+		if(diagonalReflectionSymmetry45(matris) ){symmetryNumber+=8}
+
+		if(rotationalSymmetryOfOrderTwo(matris) ){symmetryNumber+=16}
+		if(rotationalSymmetryOfOrderFour(matris)){symmetryNumber+=32}
+		
+		return symmetryNumber;
+	}
+
+	function compareMatrix(matris1,matris2){
+		//returnerar true om det finns en matchning
+		theyMatch=false;
+		tempCompMatrix=[];
+		if((matris1.length==matris2.length&&matris1[0].length==matris2[0].length)||(matris1.length==matris2[0].length&&matris2.length==matris1[0].length)){
+		//R1
+		//console.log("boss");
+		if(helpCompareMatrix(matris1,matris2)){return true;}
+		//L1
+		matris2.reverse();
+		if(helpCompareMatrix(matris1,matris2)){return true;}
+		matris2.reverse();//vänder tillbaka
+		//R2
+		tempCompMatrix=roteraMatrisMedurs90(matris2);
+		if(helpCompareMatrix(matris1,tempCompMatrix)){return true;}
+		//L2
+		tempCompMatrix.reverse();
+		if(helpCompareMatrix(matris1,tempCompMatrix)){return true;}
+		//R3
+		tempCompMatrix=roteraMatris180(matris2);
+		if(helpCompareMatrix(matris1,tempCompMatrix)){return true;}
+		//L3
+		tempCompMatrix.reverse();
+		if(helpCompareMatrix(matris1,tempCompMatrix)){return true;}		
+		//R4
+		tempCompMatrix=roteraMatrisMoturs90(matris2);
+		if(helpCompareMatrix(matris1,tempCompMatrix)){return true;}
+		//L4
+		tempCompMatrix.reverse();
+		if(helpCompareMatrix(matris1,tempCompMatrix)){return true;}
+		
+		}
+		else{
+			//console.log("olika stora")
+		}
+		//console.log("-----------------");
+		//console.log("theyMatch: "+theyMatch);
+		//consoleMatrix(matris1);
+		//consoleMatrix(matris2);
+		//console.log("-----------------");
+		
+		return theyMatch;
+	}
+	
+	function helpCompareMatrix(helpMatris1,helpMatris2){
+		//console.log("help compare matrix");
+		doTheyMatch=true;
+		//console.log("hejpa");
+		if(helpMatris1.length==helpMatris2.length&&helpMatris1[0].length==helpMatris2[0].length){
+			//outerLoopLabel:
+			for(r=0;r<helpMatris1.length;r++){
+				for(s=0;s<helpMatris1[0].length;s++){
+					//console.log("outer: "+r+" inner: "+s);
+					//if(helpMatris1[r][s]>0){tempvar1=1}
+					//else{tempvar1=0}
+					//if(helpMatris2[r][s]>0){tempvar2=1}
+					//else{tempvar2=0}					
+					if(helpMatris1[r][s]!==helpMatris2[r][s]){
+					//if(helpMatris1[r][s]!==helpMatris2[r][s]){
+					//if(helpMatris1[r][s]==0||helpMatris2[r][s]==0){
+					//if(tempvar1!==tempvar2){
+						return false;
+						//break outerLoopLabel;
+					}
+				}
+			}
+		}
+		else{
+			doTheyMatch=false;
+			//console.log("olika stora");
+		}
+		return doTheyMatch;
+	}
+	
+	function hasNeighbours(row,column,matrix){
+		itHasNeighbour=false;
+		fluffTecken=0;
+		//kollar uppåt
+		if(row>0){if(matrix[row-1][column]!==fluffTecken){itHasNeighbour=true}}
+		//kollar nedåt
+		if(row<matrix.length-1){if(matrix[row+1][column]!==fluffTecken){itHasNeighbour=true}}
+		//kollar vänster
+		if(column>0){if(matrix[row][column-1]!==fluffTecken){itHasNeighbour=true}}
+		//kollar höger
+		if(column<(matrix[row].length-1)){if(matrix[row][column+1]!==fluffTecken){itHasNeighbour=true}}
+		return itHasNeighbour;
+	}
+	
+	function deFluffMatris(matris){
+		flufftecken=0;
+		findsOneInFirstRow=false;
+		findsOneInLastRow=false;
+		findsOneInFirstColumn=false;
+		findsOneInLastColumn=false;
+		//nya arrayen att lägga till rader
+		var unFluffedMatrix = new Array();
+		
+		//kollar första och sista raden
+		for(i=0;i<matris[0].length;i++){
+			if(              matris[0][i]!==flufftecken){findsOneInFirstRow=true;}
+			if(matris[matris.length-1][i]!==flufftecken){findsOneInLastRow=true;}
+		}
+		//man behöver ev inte ta hänsyn till första och sista raden vid kopiering till nya matrisen
+		startNr=1;
+		slutNr=matris.length-1;		
+		if(findsOneInFirstRow){startNr=0;}
+		if(findsOneInLastRow){slutNr=matris.length;}		
+		
+		//kollar första och sista kolumnen
+		for(k=startNr;k<slutNr;k++){
+			//console.log("letar i rad "+k);
+			if(                 matris[k][0]!==flufftecken){findsOneInFirstColumn=true;}
+			if(matris[k][matris[k].length-1]!==flufftecken){findsOneInLastColumn=true;}
+		}
+		for(n=startNr;n<slutNr;n++){
+			//nya kolumndelar till varje rad
+			var unFluffedColumn = new Array();
+			//första och sista kolumnen behöver ev inte kopieras med till nya matrisen
+			inreStartNr=1;
+			inreSlutNr=matris[n].length-1;
+			if(findsOneInFirstColumn){inreStartNr=0;}
+			if(findsOneInLastColumn){inreSlutNr=matris[n].length;}
+			for(c=inreStartNr;c<inreSlutNr;c++){
+				unFluffedColumn.push(matris[n][c]);
+			}
+			unFluffedMatrix.push(unFluffedColumn);
+		}
+		return unFluffedMatrix;
+	}
+
+	function fluffaIn(matris){
+		flufftecken=0;
+		var nymatris = new Array();
+		for(a=0;a<matris.length+2;a++){
+			var column = new Array();
+			column.push(flufftecken);
+			for(b=0;b<matris[0].length;b++){
+				//console.log("a"+a+"b"+b);
+				if(a==0||a==(matris.length+1)){
+					column.push(flufftecken);
+				}
+				else{
+					column.push(matris[a-1][b]);
+				}
+			}
+			column.push(flufftecken);
+			nymatris.push(column);
+		}
+		return nymatris;
+	}
+	
+	function roteraMatrisMedurs90(matris){
+		//alert("hejpa");
+		var nymatris = new Array();
+		for(a=0;a<matris[0].length;a++){
+			var column = new Array();
+			for(b=matris.length-1;b>=0;b--){
+				column.push(matris[b][a]);
+			}
+			nymatris.push(column);
+		}
+		return nymatris;
+	}
+	
+	function roteraMatrisMoturs90(matris){
+		var nymatris= new Array();
+		for(a=matris[0].length-1;a>=0;a--){
+			var column = new Array();
+			for(b=0;b<matris.length;b++){
+				column.push(matris[b][a]);
+			}
+			nymatris.push(column);
+		}
+		return nymatris;
+	}
+	
+	function roteraMatris180(matris){
+		var nymatris = new Array();
+		//alert(matris.length+" asdf");
+		for(a=matris.length-1;a>=0;a--){
+			var column= new Array();
+			for(b=matris[a].length-1;b>=0;b--){
+				column.push(matris[a][b]);
+			}
+			nymatris.push(column);
+		}
+		return nymatris;
+	}
+	
+	function alertMatrix(matris){
+		printString="matris:\n";
+		for(i=0;i<matris.length;i++){
+			for(j=0;j<matris[i].length;j++){
+				printString+=matris[i][j];
+			}
+			printString+="\n";
+		}
+		alert(printString);
+	}
+	
+	function consoleMatrix(matris){
+		printString="matris:\n";
+		for(i=0;i<matris.length;i++){
+			for(j=0;j<matris[i].length;j++){
+				printString+=matris[i][j];
+			}
+			printString+="\n";
+		}
+		console.log(printString);
+	}	
+
+	function diagonalReflectionSymmetry135(matris){
+		if(matris.length==matris[0].length){
+			isSymmetrical=true;
+			for(x=1;x<matris.length;x++){
+				for(y=0;y<x;y++){
+					if(matris[x][y]!==matris[y][x]){return false;}
+				}
+			}
+			return isSymmetrical;
+		}
+		else{return false;}
+	}
+
+	function diagonalReflectionSymmetry45(matris){
+		if(matris.length==matris[0].length){
+			isSymmetrical=true;
+			for(x=0;x<matris.length-1;x++){
+				for(y=0;y<matris.length-1-x;y++){
+					if(matris[x][y]!==matris[matris.length-1-y][matris.length-1-x]){return false;}
+				}
+			}
+			return isSymmetrical;
+		}
+		else{return false;}
+	}
+
+	function yAxisSymmetry(matris){
+		isSymmetrical=true;
+
+		for(y=0;y<Math.floor(matris[0].length/2);y++){
+			for(x=0;x<matris.length;x++){
+				if(matris[x][y]!==matris[x][matris[0].length-1-y]){return false;}
+			}
+		}
+		return isSymmetrical;
+	}
+
+	function xAxisSymmetry(matris){
+		isSymmetrical=true;
+		for(x=0;x<Math.floor(matris.length/2);x++){
+			for(y=0;y<matris[0].length;y++){
+				if(matris[x][y]!==matris[matris.length-1-x][y]){return false;}
+			}
+		}
+		return isSymmetrical;
+	}	
+	
+	function rotationalSymmetryOfOrderTwo(matris){
+		//if(matris.length==matris[0].length){
+			isSymmetrical=true;
+			for(x=0;x<Math.ceil(matris.length/2);x++){
+				for(y=0;y<matris[0].length;y++){
+					//if(matris[x][y]!==matris[matris.length-1-x][y]){return false;}
+					if(matris[x][y]!==matris[matris.length-1-x][matris[0].length-1-y]){return false;}
+				}
+			}
+			return isSymmetrical;
+		//}
+		//else{return false;}
+	}
+	
+	function rotationalSymmetryOfOrderFour(matris){
+		if(matris.length==matris[0].length){
+			isSymmetrical=true;
+			for(x=0;x<Math.ceil(matris.length/2);x++){
+				for(y=0;y<Math.ceil(matris[0].length/2);y++){
+					//övre högra
+					if(matris[x][y]!==matris[y][matris[0].length-1-x]){return false;}
+					//nedre högra
+					if(matris[x][y]!==matris[matris.length-1-x][matris[0].length-1-y]){return false;}
+					//nedre vänstra
+					if(matris[x][y]!==matris[matris.length-1-y][x]){return false;}
+				}
+			}
+			//consoleMatrix(matris);
+			return isSymmetrical;
+		}
+		else{return false;}
+	}
+	
+	
+	function plusKvadratBredd(){
+		if(kvadratBredd>1){kvadratBredd--}
+		drawShapes();
+	}
+	
+	function minusKvadratBredd(){
+		if(kvadratBredd<40){kvadratBredd++}
+		drawShapes();	
+	}
+	
+	function tick(){
+		var tempD = new Date();
+		startMeasuredTime=tempD.getTime();
+	}
+	
+	function tock(){
+		var tempD = new Date();
+		//alert(startMeasuredTime-tempD.getTime());
+		passedTime=(tempD.getTime()-startMeasuredTime)/1000;
+		if(passedTime>60){
+			returString=(passedTime-passedTime%60)/60+"m "+Math.round(passedTime%60)+"s";
+		}
+		else{
+			returString=passedTime+"s";
+		}
+		return returString;
+	}
+	
+	function listChange(){
+		drawShapes();
+		//antal delar
+		document.getElementById("delar").innerHTML=getListValue()+"";
+		//uppdaterar med antal
+		document.getElementById("antalText").innerHTML=variantGeneration[getListValue()-1].length+"";
+		//hur lång tid beräkningen tog
+		document.getElementById("cost").innerHTML=calculationTime[getListValue()-1];
+
+
+	}
+	
+	
+</script>
+
+<style type="text/css">
+      canvas { border: 1px solid black;}
+	  body {font-family: Arial, Helvetica, sans-serif;
+			font-size: 90%;}
+</style>
+
+
+</head>
+<body onload="">
+	<button type="button" onClick="starta();">Add class!</button>
+	<!-- <button type="button" onClick="drawShapes();">Plot it!</button> -->
+	<button type="button" onClick="plusKvadratBredd();">-</button>
+	<button type="button" onClick="minusKvadratBredd();">+</button>
+	<select onChange="listChange();" id="generationListan">
+		<option value=1>1</option>
+	</select>
+	Squares <span id="delar">1</span> amount <span id="antalText">1</span> cost <span id="cost">0s</span>
+	<BR>
+	<canvas id="canvas" width="1800" height="900"></canvas>
+
+	
+	
+</body>
+</html>
