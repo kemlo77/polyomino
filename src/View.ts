@@ -1,3 +1,5 @@
+import { Polyomino } from './Polyomino';
+
 export class View {
 
     private width: number;
@@ -27,7 +29,7 @@ export class View {
         }
     }
 
-    drawPolyomino(arrayOfShapes, arrayOfSymmetryInfo): void {
+    drawPolyomino(polyominos: Polyomino<number>[]): void {
         const vitKant: number = 0.5;
         let offset_x: number = this.cellWidth;
         let offset_y: number = this.cellWidth;
@@ -49,9 +51,9 @@ export class View {
         this._ctx.translate(offset_x, offset_y);
 
         //f�r alla shapes (att rita ut)
-        for (let z: number = 0; z < arrayOfShapes.length; z++) {
-            const formen = arrayOfShapes[z];
-            this._ctx.fillStyle = this.getFillStyle(arrayOfSymmetryInfo[z]);
+        for (let z: number = 0; z < polyominos.length; z++) {
+            const formen = polyominos[z].matrix;
+            this._ctx.fillStyle = this.getFillStyle(polyominos[z].symmetryNumber);
 
 
             //ritar ut 
