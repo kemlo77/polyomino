@@ -29,7 +29,7 @@ export class View {
         }
     }
 
-    drawPolyomino(polyominos: Polyomino<number>[]): void {
+    drawPolyomino(polyominos: Polyomino[]): void {
         const vitKant: number = 0.5;
         let offset_x: number = this.cellWidth;
         let offset_y: number = this.cellWidth;
@@ -52,7 +52,7 @@ export class View {
 
         //f�r alla shapes (att rita ut)
         for (let z: number = 0; z < polyominos.length; z++) {
-            const formen = polyominos[z].matrix;
+            const formen: boolean[][] = polyominos[z].matrix;
             this._ctx.fillStyle = this.getFillStyle(polyominos[z].symmetryNumber);
 
 
@@ -62,7 +62,7 @@ export class View {
                 if (formen.length > maxShapeHeight) { maxShapeHeight = formen.length; }
                 //ritar ut alla bitar
                 for (let j: number = 0; j < formen[0].length; j++) {
-                    if (formen[i][j] > 0) {
+                    if (formen[i][j]) {
                         this._ctx.fillRect(
                             j * this.cellWidth,
                             i * this.cellWidth,

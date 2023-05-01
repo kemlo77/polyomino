@@ -1,22 +1,3 @@
-import {
-    createPaddedMatrix,
-    diagonalReflectionSymmetry135,
-    diagonalReflectionSymmetry45,
-    flipHorizontally,
-    flipVertically,
-    getDirectNeighboursToCell,
-    matricesAreEqualIfFlipedOrRotated,
-    matrixToString,
-    matrixesAreEqual,
-    removePaddingFromMatrix,
-    rotate180,
-    rotate90Clockwise,
-    rotate90CounterClockwise,
-    rotationalSymmetryOfOrderFour,
-    rotationalSymmetryOfOrderTwo,
-    xAxisSymmetry,
-    yAxisSymmetry
-} from './MatrixOperations';
 import { Polyomino } from './Polyomino';
 import './style.css';
 import { View } from './View';
@@ -31,12 +12,12 @@ const canvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanva
 const view: View = new View(canvas);
 
 const calculationTime: string[] = [];
-calculationTime.push("0s");
+calculationTime.push('0s');
 let startMeasuredTime: number = 0;
 
 
-const smallestPolyomino: Polyomino<number> = new Polyomino([[1]]);
-const variantGenerationPolyomino: Polyomino<number>[][] = [[smallestPolyomino]];
+const smallestPolyomino: Polyomino = Polyomino.smallestPolyomino();
+const variantGenerationPolyomino: Polyomino[][] = [[smallestPolyomino]];
 
 
 function getListValue(): number {
@@ -62,58 +43,21 @@ function drawShapes(): void {
 
 function starta(): void {
     tick();
-    let fluffTecken = 0;
 
+    const foundPolyominosOfCurrentSize: Polyomino[] = [];
 
-    let foundPolyominosOfCurrentSize = [];
-    //att j�mf�ra med alla p� den f�reg�ende niv�n
-    variantGenerationPolyomino[variantGenerationPolyomino.length - 1].forEach(polyomino => {
-        let paddedMatrix = createPaddedMatrix(polyomino.matrix, fluffTecken);
-        //testa alla positioner f�r ny "kvadratdel"
-        for (let z: number = 0; z < paddedMatrix.length; z++) {
-            for (let d: number = 0; d < paddedMatrix[0].length; d++) {
-                //om det �r en tom cell testar vi p� den
-                if (paddedMatrix[z][d] == fluffTecken) {
-                    //bara intressant att kolla om den har grannar
-                    const directNeighboursToCell = getDirectNeighboursToCell(z, d, paddedMatrix);
-                    if (directNeighboursToCell.some(cell => cell !== 0)) {
-                        //s�tter en tempor�r markering i rutan som kollas
-                        paddedMatrix[z][d] = 1;
-                        //om det inte finns N�T sparat f�r den leveln s� �r det bara att spara
-                        if (foundPolyominosOfCurrentSize.length == 0) {
-                            let matrixToStore = removePaddingFromMatrix(paddedMatrix, fluffTecken);
-                            foundPolyominosOfCurrentSize.push(new Polyomino(matrixToStore));
-                        }
-                        else {
-                            //j�mf�ra med alla p� befintlig generation level
-                            let hittarMatchning: boolean = false;
-                            let matrixToCompare = removePaddingFromMatrix(paddedMatrix, fluffTecken);
-                            for (let h: number = 0; h < foundPolyominosOfCurrentSize.length; h++) {
-                                hittarMatchning = matricesAreEqualIfFlipedOrRotated(foundPolyominosOfCurrentSize[h].matrix, matrixToCompare);
-                                if (hittarMatchning) { break; }//om den redan fanns kan man avbryta
-                            }
-                            if (!hittarMatchning) {//sparar om det inte finns n�n matchning
-                                let theSymmetryNumber = calculateSymmetry(matrixToCompare);
-
-                                // om den �r enkelt symetrisk kring x-axeln eller kring 135 
-                                // grader roteras den 90 grader innan den sparas.
-                                if (theSymmetryNumber == 2 || theSymmetryNumber == 4) {
-                                    foundPolyominosOfCurrentSize.push(new Polyomino(rotate90CounterClockwise(matrixToCompare)));
-                                }
-                                else {
-                                    foundPolyominosOfCurrentSize.push(new Polyomino(matrixToCompare));
-                                }
-                            }
-
-                        }
-                        paddedMatrix[z][d] = fluffTecken; //�terst�ller fluffadMatris f�r att �teranv�nda
+    variantGenerationPolyomino[variantGenerationPolyomino.length - 1]
+        .forEach(currentSizePolyomino => {
+            currentSizePolyomino
+                .generateNextSizePolyominosFromThis()
+                .forEach(nextSizePolyomino => {
+                    const alreadyFound: boolean = foundPolyominosOfCurrentSize.some(foundPolyomino =>
+                        nextSizePolyomino.isEqualToOtherIfFlippedAndOrRotaded(foundPolyomino));
+                    if (!alreadyFound) {
+                        foundPolyominosOfCurrentSize.push(nextSizePolyomino);
                     }
-                }
-            }
-        }
-    });
-
-
+                });
+        });
 
     variantGenerationPolyomino.push(foundPolyominosOfCurrentSize);
 
@@ -130,22 +74,6 @@ function starta(): void {
 }
 
 
-
-
-function calculateSymmetry(matris): number {
-    let symmetryNumber: number = 0;
-
-    if (yAxisSymmetry(matris)) { symmetryNumber += 1; }
-    if (xAxisSymmetry(matris)) { symmetryNumber += 2; }
-
-    if (diagonalReflectionSymmetry135(matris)) { symmetryNumber += 4; }
-    if (diagonalReflectionSymmetry45(matris)) { symmetryNumber += 8; }
-
-    if (rotationalSymmetryOfOrderTwo(matris)) { symmetryNumber += 16; }
-    if (rotationalSymmetryOfOrderFour(matris)) { symmetryNumber += 32; }
-
-    return symmetryNumber;
-}
 
 
 function decreaseSize(): void {

@@ -1,11 +1,12 @@
 import { expect } from 'chai';
 import {
+    copyMatrix,
     createPaddedMatrix,
     diagonalReflectionSymmetry135,
     diagonalReflectionSymmetry45,
     flipHorizontally, flipVertically,
     getDirectNeighboursToCell,
-    matricesAreEqualIfFlipedOrRotated,
+    matricesAreEqualIfFlippedAndOrRotated,
     matrixToString,
     matrixesAreEqual,
     removePaddingFromMatrix,
@@ -118,7 +119,7 @@ describe('ModelOperations', () => {
 
 
 
-    it('matricesAreEqualIfFlipedOrRotated - happy case', () => {
+    it('matricesAreEqualIfFlippedAndOrRotated - happy case', () => {
         const matrix1: string[][] = [
             ['a', 'b', 'c', 'd'],
             ['e', 'f', 'g', 'h'],
@@ -136,13 +137,13 @@ describe('ModelOperations', () => {
         rotatedMatrices.push(flipHorizontally(rotate90CounterClockwise(matrix1)));
 
         rotatedMatrices.forEach(matrix => {
-            expect(matricesAreEqualIfFlipedOrRotated(matrix, matrix1)).to.be.true;
+            expect(matricesAreEqualIfFlippedAndOrRotated(matrix, matrix1)).to.be.true;
         });
     });
 
 
 
-    it('matricesAreEqualIfFlipedOrRotated - different dimensions', () => {
+    it('matricesAreEqualIfFlippedAndOrRotated - different dimensions', () => {
         const matrix1: string[][] = [
             ['a', 'b', 'c'],
             ['d', 'e', 'f']
@@ -151,10 +152,10 @@ describe('ModelOperations', () => {
             ['a', 'b'],
             ['c', 'd']
         ];
-        expect(matricesAreEqualIfFlipedOrRotated(matrix2, matrix1)).to.be.false;
+        expect(matricesAreEqualIfFlippedAndOrRotated(matrix2, matrix1)).to.be.false;
     });
 
-    it('matricesAreEqualIfFlipedOrRotated - different values', () => {
+    it('matricesAreEqualIfFlippedAndOrRotated - different values', () => {
         const testMatrix: string[][] = [
             ['a', 'b'],
             ['c', 'd']
@@ -163,7 +164,7 @@ describe('ModelOperations', () => {
             ['a', 'b'],
             ['c', 'q']
         ];
-        expect(matricesAreEqualIfFlipedOrRotated(testMatrix, testMatrix3alternate)).to.be.false;
+        expect(matricesAreEqualIfFlippedAndOrRotated(testMatrix, testMatrix3alternate)).to.be.false;
     });
 
     it('diagonalReflectionSymmetry135 - is symmetrical', () => {
@@ -469,6 +470,16 @@ describe('ModelOperations', () => {
             ['a', 'a', 'a']
         ];
         expect(getDirectNeighboursToCell(2, 2, matrix1).length).to.equal(2);
+    });
+
+    it('copyMatrix', () => {
+        const matrix: string[][] = [
+            ['a', 'b', 'c'],
+            ['d', 'e', 'f'],
+            ['g', 'h', 'i']
+        ];
+        const matrixCopy: string[][] = copyMatrix(matrix);
+        expect(matrixesAreEqual(matrix, matrixCopy)).to.be.true;
     });
 
 

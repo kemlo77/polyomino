@@ -58,7 +58,7 @@ export function matrixesAreEqual<Type>(matrix1: Type[][], matrix2: Type[][]): bo
 }
 
 
-export function matricesAreEqualIfFlipedOrRotated<Type>(matrix1: Type[][], matrix2: Type[][]): boolean {
+export function matricesAreEqualIfFlippedAndOrRotated<Type>(matrix1: Type[][], matrix2: Type[][]): boolean {
 
     const matricesAlreadyHaveSameDimensions: boolean =
         matrix1.length == matrix2.length && matrix1[0].length == matrix2[0].length;
@@ -230,4 +230,10 @@ export function matrixToString<Type>(matrix: Type[][]): string {
         matrixAsString += '\n';
     });
     return matrixAsString;
+}
+
+export function copyMatrix<Type>(matrix: Type[][]): Type[][] {
+    const newMatrix: Type[][] = [];
+    matrix.forEach(row => newMatrix.push(row.slice()));
+    return newMatrix;
 }
