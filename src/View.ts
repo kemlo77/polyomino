@@ -1,18 +1,22 @@
+import { Model } from './Model';
 import { Polyomino } from './Polyomino';
 
 export class View {
 
-    private width: number;
-    private height: number;
-    private cellWidth: number = 3;
     private _canvas: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
 
-    constructor(canvas: HTMLCanvasElement) {
-        this._canvas = canvas;
+    private width: number;
+    private height: number;
+    private cellWidth: number = 5;
+    private _model: Model;
+
+    constructor(model: Model) {
+        this._canvas = document.getElementById('canvas') as HTMLCanvasElement;
         this.height = this._canvas.offsetHeight;
         this.width = this._canvas.offsetWidth;
         this._ctx = this._canvas.getContext('2d');
+        this._model = model;
     }
 
 
@@ -21,12 +25,18 @@ export class View {
         if (this.cellWidth > 1) {
             this.cellWidth -= 3;
         }
+        this.drawLargestSizeGroup(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
     }
 
     increaseCellSize(): void {
         if (this.cellWidth < 40) {
             this.cellWidth += 3;
         }
+        this.drawLargestSizeGroup(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
+    }
+
+    drawLargestSizeGroup(size: number): void {
+        this.drawPolyomino(this._model.getAllPolyominosWithSize(size));
     }
 
     drawPolyomino(polyominos: Polyomino[]): void {
@@ -107,11 +117,20 @@ export class View {
             case 28:
                 return 'rgba(255,153,119,1)';
             case 48:
-                return 'rgba(255,204,102,1)';
+                return 'rgba(255,204,102,1)'; //yellow
             case 63:
                 return 'rgba(136,204,204,1)';
             default:
                 return 'rgba(0,0,255,1)';
         }
+    }
+
+    displayInfo(sizeGroup: number): void {
+        const numberOfVariants: number = this._model.getAllPolyominosWithSize(sizeGroup).length;
+        const timeConsumed: string = this._model.getTimeConsumedForGroupWithSize(sizeGroup);
+        const infoString: string =
+            `Polyomino of size ${sizeGroup} has ${numberOfVariants} variants and took ${timeConsumed} to generate.`;
+
+        document.getElementById('calculationInfo').innerHTML = infoString;
     }
 }
