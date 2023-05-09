@@ -1,6 +1,6 @@
-import { Polyomino } from './Polyomino';
-import './style.css';
+import { Model } from './Model';
 import { View } from './View';
+import './style.css';
 
 document.getElementById('startButton').addEventListener('click', () => starta());
 document.getElementById('plusButton').addEventListener('click', () => increaseSize());
@@ -9,15 +9,16 @@ const generationSelect: HTMLSelectElement = document.getElementById('generationL
 generationSelect.addEventListener('change', () => listChange());
 const canvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
 
+
 const view: View = new View(canvas);
+const model: Model = new Model();
 
 const calculationTime: string[] = [];
 calculationTime.push('0s');
 let startMeasuredTime: number = 0;
 
 
-const smallestPolyomino: Polyomino = Polyomino.smallestPolyomino();
-const variantGenerationPolyomino: Polyomino[][] = [[smallestPolyomino]];
+
 
 
 function getListValue(): number {
@@ -35,7 +36,7 @@ function drawShapes(): void {
 
     //const valdGeneration: number = getListValue();
 
-    view.drawPolyomino(variantGenerationPolyomino[variantGenerationPolyomino.length - 1]);
+    view.drawPolyomino(model.largestGeneratedSizeGroup);
 
 }
 
@@ -44,25 +45,12 @@ function drawShapes(): void {
 function starta(): void {
     tick();
 
-    const foundPolyominosOfCurrentSize: Polyomino[] = [];
 
-    variantGenerationPolyomino[variantGenerationPolyomino.length - 1]
-        .forEach(currentSizePolyomino => {
-            currentSizePolyomino
-                .generateNextSizePolyominosFromThis()
-                .forEach(nextSizePolyomino => {
-                    const alreadyFound: boolean = foundPolyominosOfCurrentSize.some(foundPolyomino =>
-                        nextSizePolyomino.isEqualToOtherIfFlippedAndOrRotaded(foundPolyomino));
-                    if (!alreadyFound) {
-                        foundPolyominosOfCurrentSize.push(nextSizePolyomino);
-                    }
-                });
-        });
-
-    variantGenerationPolyomino.push(foundPolyominosOfCurrentSize);
+    const sizeGroupGenerated: number = model.generateNextPolyominoSizeGroup();
 
 
-    addValueToSelect(variantGenerationPolyomino.length);
+
+    addValueToSelect(sizeGroupGenerated);
 
     //note how long it took to calculate
     const timePassed: string = tock();
@@ -109,7 +97,7 @@ function listChange(): void {
     //antal delar
     document.getElementById('delar').innerHTML = getListValue() + '';
     //uppdaterar med antal
-    document.getElementById('antalText').innerHTML = variantGenerationPolyomino[getListValue() - 1].length + '';
+    document.getElementById('antalText').innerHTML = model.getAllPolyominosWithSize(getListValue()).length + '';
     //hur l�ng tid ber�kningen tog
     document.getElementById('cost').innerHTML = calculationTime[getListValue() - 1];
 
