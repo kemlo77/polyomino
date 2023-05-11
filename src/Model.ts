@@ -1,13 +1,13 @@
 import { Observer } from './Observer';
 import { Polyomino } from './Polyomino';
 import { Subject } from './Subject';
+import { Timer } from './Timer';
 
 export class Model implements Subject {
 
 
     private _polyominoSizeGroups: Polyomino[][];
     private _calculationTime: string[];
-    private startMeasuredTime: number = 0;
     private _observers: Observer[] = [];
 
     constructor() {
@@ -28,7 +28,7 @@ export class Model implements Subject {
     }
 
     generateNextPolyominoSizeGroup(): void {
-        this.tick();
+        const timer: Timer = Timer.startNewTimer();
         const foundPolyominosOfCurrentSize: Polyomino[] = [];
         this._polyominoSizeGroups[this._polyominoSizeGroups.length - 1]
             .forEach(currentSizePolyomino => {
@@ -44,7 +44,7 @@ export class Model implements Subject {
             });
 
         this._polyominoSizeGroups.push(foundPolyominosOfCurrentSize);
-        this._calculationTime.push(this.tock());
+        this._calculationTime.push(timer.stopTimerAndGetTimePassed());
 
         this.notify();
     }
@@ -67,23 +67,7 @@ export class Model implements Subject {
     }
 
 
-    private tick(): void {
-        const tempD: Date = new Date();
-        this.startMeasuredTime = tempD.getTime();
-    }
 
-    private tock(): string {
-        const tempD: Date = new Date();
-        let returString: string = '';
-        const passedTime: number = (tempD.getTime() - this.startMeasuredTime) / 1000;
-        if (passedTime > 60) {
-            returString = (passedTime - passedTime % 60) / 60 + 'm ' + Math.round(passedTime % 60) + 's';
-        }
-        else {
-            returString = passedTime + 's';
-        }
-        return returString;
-    }
 
 }
 
