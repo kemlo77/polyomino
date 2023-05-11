@@ -1,9 +1,14 @@
 import { Model } from './Model';
+import { Observer } from './Observer';
 import { Polyomino } from './Polyomino';
 
-export class View {
 
-    private _canvas: HTMLCanvasElement;
+export class View implements Observer {
+
+    private _selectElement: HTMLSelectElement;
+    private _plusButton: HTMLButtonElement;
+    private _minusButton: HTMLButtonElement;
+    private _canvasElement: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
 
     private width: number;
@@ -11,35 +16,77 @@ export class View {
     private cellWidth: number = 5;
     private _model: Model;
 
+
     constructor(model: Model) {
-        this._canvas = document.getElementById('canvas') as HTMLCanvasElement;
-        this.height = this._canvas.offsetHeight;
-        this.width = this._canvas.offsetWidth;
-        this._ctx = this._canvas.getContext('2d');
+        this._canvasElement = document.getElementById('canvas') as HTMLCanvasElement;
+
+        this._selectElement = document.getElementById('generationListan') as HTMLSelectElement;
+        this._selectElement.addEventListener('change', () => this.showSelectedSizeGroup());
+
+        this._plusButton = document.getElementById('plusButton') as HTMLButtonElement;
+        this._plusButton.addEventListener('click', () => this.increaseCellSize());
+
+        this._minusButton = document.getElementById('minusButton') as HTMLButtonElement;
+        this._minusButton.addEventListener('click', () => this.decreaseCellSize());
+
+        this.height = this._canvasElement.offsetHeight;
+        this.width = this._canvasElement.offsetWidth;
+        this._ctx = this._canvasElement.getContext('2d');
         this._model = model;
     }
 
-
-
-    decreaseCellSize(): void {
-        if (this.cellWidth > 1) {
-            this.cellWidth -= 3;
-        }
-        this.drawLargestSizeGroup(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
+    update(): void {
+        const largestSizeGroupGenerated: number = this._model.getNumberOfGeneratedSizeGroups();
+        this.addPolyominoSizeGroupToSelect(largestSizeGroupGenerated);
+        this.drawPolyominosWithSize(largestSizeGroupGenerated);
+        this.displayPolyominoSizeGroupInfo(largestSizeGroupGenerated);
     }
 
-    increaseCellSize(): void {
-        if (this.cellWidth < 40) {
-            this.cellWidth += 3;
-        }
-        this.drawLargestSizeGroup(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
+    private addPolyominoSizeGroupToSelect(size: number): void {
+        const optionText: string = `${this.getNameForGroupWithSize(size)} (size ${String(size)})`;
+        this._selectElement.options[this._selectElement.options.length] =
+            new Option(optionText, String(size));
+        //select the added value in the list
+        this._selectElement.selectedIndex = size - 1;
     }
 
-    drawLargestSizeGroup(size: number): void {
+    private getNameForGroupWithSize(size: number): string {
+        const names: string[] = [
+            'monomino',
+            'domino',
+            'tromino',
+            'tetromino',
+            'pentomino',
+            'hexomino',
+            'heptomino',
+            'octomino',
+            'nonomino',
+            'decomino',
+            'undecomino',
+            'dodecomino',
+        ];
+        if (size > names.length) {
+            return size.toString + '-omino?';
+        }
+        return names[size - 1];
+    }
+
+    private showSelectedSizeGroup(): void {
+        this.drawPolyominosWithSize(this.getSelectedSizeGroup());
+        this.displayPolyominoSizeGroupInfo(this.getSelectedSizeGroup());
+    }
+
+    private getSelectedSizeGroup(): number {
+        const selectedSizeGroup: string = this._selectElement.options[this._selectElement.selectedIndex].value;
+        return Number(selectedSizeGroup);
+    }
+
+
+    private drawPolyominosWithSize(size: number): void {
         this.drawPolyomino(this._model.getAllPolyominosWithSize(size));
     }
 
-    drawPolyomino(polyominos: Polyomino[]): void {
+    private drawPolyomino(polyominos: Polyomino[]): void {
         const vitKant: number = 0.5;
         let offset_x: number = this.cellWidth;
         let offset_y: number = this.cellWidth;
@@ -50,7 +97,7 @@ export class View {
 
         // tar omr�det som kan ritas ut p�
 
-        if (!this._canvas.getContext) {
+        if (!this._canvasElement.getContext) {
             return;
         }
 
@@ -125,7 +172,21 @@ export class View {
         }
     }
 
-    displayInfo(sizeGroup: number): void {
+    private decreaseCellSize(): void {
+        if (this.cellWidth > 1) {
+            this.cellWidth -= 3;
+        }
+        this.drawPolyominosWithSize(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
+    }
+
+    private increaseCellSize(): void {
+        if (this.cellWidth < 40) {
+            this.cellWidth += 3;
+        }
+        this.drawPolyominosWithSize(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
+    }
+
+    private displayPolyominoSizeGroupInfo(sizeGroup: number): void {
         const numberOfVariants: number = this._model.getAllPolyominosWithSize(sizeGroup).length;
         const timeConsumed: string = this._model.getTimeConsumedForGroupWithSize(sizeGroup);
         const infoString: string =

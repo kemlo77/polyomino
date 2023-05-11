@@ -1,11 +1,14 @@
+import { Observer } from './Observer';
 import { Polyomino } from './Polyomino';
+import { Subject } from './Subject';
 
-export class Model {
+export class Model implements Subject {
 
 
     private _polyominoSizeGroups: Polyomino[][];
     private _calculationTime: string[];
     private startMeasuredTime: number = 0;
+    private _observers: Observer[] = [];
 
     constructor() {
         this._polyominoSizeGroups = [[Polyomino.smallestPolyomino()]];
@@ -13,7 +16,18 @@ export class Model {
 
     }
 
-    generateNextPolyominoSizeGroup(): number {
+    public attachObserver(observer: Observer): void {
+        if (this._observers.includes(observer)) {
+            return;
+        }
+        this._observers.push(observer);
+    }
+
+    notify(): void {
+        this._observers.forEach(observer => observer.update());
+    }
+
+    generateNextPolyominoSizeGroup(): void {
         this.tick();
         const foundPolyominosOfCurrentSize: Polyomino[] = [];
         this._polyominoSizeGroups[this._polyominoSizeGroups.length - 1]
@@ -31,9 +45,9 @@ export class Model {
 
         this._polyominoSizeGroups.push(foundPolyominosOfCurrentSize);
         this._calculationTime.push(this.tock());
-        return this._polyominoSizeGroups.length;
-    }
 
+        this.notify();
+    }
 
 
     get largestGeneratedSizeGroup(): Polyomino[] {
@@ -52,26 +66,6 @@ export class Model {
         return this._calculationTime[size - 1];
     }
 
-    getNameForGroupWithSize(size: number): string {
-        const names: string[] = [
-            'monomino',
-            'domino',
-            'tromino',
-            'tetromino',
-            'pentomino',
-            'hexomino',
-            'heptomino',
-            'octomino',
-            'nonomino',
-            'decomino',
-            'undecomino',
-            'dodecomino',
-        ];
-        if (size > names.length) {
-            return size.toString + '-omino?';
-        }
-        return names[size - 1];
-    }
 
     private tick(): void {
         const tempD: Date = new Date();
