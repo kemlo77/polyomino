@@ -11,8 +11,6 @@ export class View implements Observer {
     private _canvasElement: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
 
-    private width: number;
-    private height: number;
     private cellWidth: number = 20;
     private _model: Model;
 
@@ -29,12 +27,18 @@ export class View implements Observer {
         this._minusButton = document.getElementById('minusButton') as HTMLButtonElement;
         this._minusButton.addEventListener('click', () => this.decreaseCellSize());
 
-        this.height = this._canvasElement.offsetHeight;
-        this.width = this._canvasElement.offsetWidth;
         this._ctx = this._canvasElement.getContext('2d');
         this._model = model;
 
         this.updateViewWithLargestGeneratedSizeGroup();
+    }
+
+    get height(): number {
+        return this._canvasElement.height;
+    }
+
+    get width(): number {
+        return this._canvasElement.width;
     }
 
     update(): void {
@@ -49,7 +53,7 @@ export class View implements Observer {
     }
 
     private addPolyominoSizeGroupToSelect(size: number): void {
-        const optionText: string = `${this.getNameForGroupWithSize(size)} (size ${String(size)})`;
+        const optionText: string = `Size ${String(size)} - ${this.getNameForGroupWithSize(size)}`;
         this._selectElement.options[this._selectElement.options.length] =
             new Option(optionText, String(size));
         //select the added value in the list
@@ -197,5 +201,27 @@ export class View implements Observer {
             `Polyomino of size ${sizeGroup} has ${numberOfVariants} variants and took ${timeConsumed} to generate.`;
 
         document.getElementById('calculationInfo').innerHTML = infoString;
+    }
+
+    public updateBecauseWindowIsResized(): void {
+        this._canvasElement.width = window.innerWidth - 32;
+        this._canvasElement.height = window.innerHeight - 64;
+
+        this.showSelectedSizeGroup();
+    }
+
+
+    public delayedUpdateBecauseWindowIsResized: any =
+        this.debounce((): void => this.updateBecauseWindowIsResized(), 500);
+
+    private debounce<F extends Function>(func: F, wait: number): F {
+        let timeoutID: number;
+        return <any>function (this: any, ...args: any[]) {
+            clearTimeout(timeoutID);
+            const context: any = this;
+            timeoutID = window.setTimeout(() => {
+                func.apply(context, args);
+            }, wait);
+        };
     }
 }

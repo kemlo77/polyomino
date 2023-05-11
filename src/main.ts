@@ -10,5 +10,5 @@ model.attachObserver(view);
 
 document.getElementById('startButton').addEventListener('click', () => model.generateNextPolyominoSizeGroup());
 
-
-
+window.addEventListener('load', () => view.updateBecauseWindowIsResized());
+window.addEventListener('resize', () => view.delayedUpdateBecauseWindowIsResized());
