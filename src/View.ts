@@ -13,7 +13,7 @@ export class View implements Observer {
 
     private width: number;
     private height: number;
-    private cellWidth: number = 5;
+    private cellWidth: number = 20;
     private _model: Model;
 
 
@@ -33,13 +33,19 @@ export class View implements Observer {
         this.width = this._canvasElement.offsetWidth;
         this._ctx = this._canvasElement.getContext('2d');
         this._model = model;
+
+        this.updateViewWithLargestGeneratedSizeGroup();
     }
 
     update(): void {
-        const largestSizeGroupGenerated: number = this._model.getNumberOfGeneratedSizeGroups();
-        this.addPolyominoSizeGroupToSelect(largestSizeGroupGenerated);
-        this.drawPolyominosWithSize(largestSizeGroupGenerated);
-        this.displayPolyominoSizeGroupInfo(largestSizeGroupGenerated);
+        this.updateViewWithLargestGeneratedSizeGroup();
+    }
+
+    private updateViewWithLargestGeneratedSizeGroup(): void {
+        const largestGeneratedSizeGroup: number = this._model.getNumberOfGeneratedSizeGroups();
+        this.addPolyominoSizeGroupToSelect(largestGeneratedSizeGroup);
+        this.drawPolyominosWithSize(largestGeneratedSizeGroup);
+        this.displayPolyominoSizeGroupInfo(largestGeneratedSizeGroup);
     }
 
     private addPolyominoSizeGroupToSelect(size: number): void {
