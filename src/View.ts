@@ -83,68 +83,64 @@ export class View implements Observer {
 
 
     private drawPolyominosWithSize(size: number): void {
-        this.drawPolyomino(this._model.getAllPolyominosWithSize(size));
+        this.paintPolyominos(this._model.getAllPolyominosWithSize(size));
     }
 
-    private drawPolyomino(polyominos: Polyomino[]): void {
-        const vitKant: number = 0.5;
-        let offset_x: number = this.cellWidth;
-        let offset_y: number = this.cellWidth;
-        //max h�jd f�r aktuel rad. Anv�nds f�r att ekonomisera utrymmet
-        let maxShapeHeight: number = 0;
+    private paintPolyominos(polyominos: Polyomino[]): void {
+        const cellDistance: number = this.cellWidth;
 
+        let accumulatedOffsetX: number = 0;
+        let accumulatedOffsetY: number = cellDistance;
+        let currentRowMaxUsedHeight: number = 0;
 
+        this.clearCanvas();
 
-        // tar omr�det som kan ritas ut p�
+        polyominos.forEach(polyomino => {
 
-        if (!this._canvasElement.getContext) {
-            return;
-        }
+            accumulatedOffsetX += cellDistance;
 
+            const polyominoHeight: number = polyomino.matrix.length * this.cellWidth;
+            const polyominoWidth: number = polyomino.matrix[0].length * this.cellWidth;
 
-        this._ctx.clearRect(0, 0, this.width, this.height);
-        this._ctx.fillStyle = 'rgba(170,170,170,1)';
-        this._ctx.save();
-        this._ctx.translate(offset_x, offset_y);
+            if (currentRowMaxUsedHeight < polyominoHeight) {
+                currentRowMaxUsedHeight = polyominoHeight;
+            }
 
-        //f�r alla shapes (att rita ut)
-        for (let z: number = 0; z < polyominos.length; z++) {
-            const formen: boolean[][] = polyominos[z].matrix;
-            this._ctx.fillStyle = this.getFillStyle(polyominos[z].symmetryNumber);
+            if (accumulatedOffsetX + polyominoWidth + cellDistance > this.width) {
+                accumulatedOffsetX = cellDistance;
+                accumulatedOffsetY += currentRowMaxUsedHeight + cellDistance;
+                currentRowMaxUsedHeight = 0;
+            }
 
+            this.paintPolyomino(polyomino, accumulatedOffsetX, accumulatedOffsetY);
+            accumulatedOffsetX += polyominoWidth;
+        });
+    }
 
-            //ritar ut 
-            for (let i: number = 0; i < formen.length; i++) {
-                //sparar max antal kvadrater p� h�jden
-                if (formen.length > maxShapeHeight) { maxShapeHeight = formen.length; }
-                //ritar ut alla bitar
-                for (let j: number = 0; j < formen[0].length; j++) {
-                    if (formen[i][j]) {
-                        this._ctx.fillRect(
-                            j * this.cellWidth,
-                            i * this.cellWidth,
-                            this.cellWidth - vitKant,
-                            this.cellWidth - vitKant);
-                    }
+    private paintPolyomino(polyomino: Polyomino, xOffset: number, yOffset: number): void {
+        const whiteBorder: number = 0.5;
+        const shapeMatrix: boolean[][] = polyomino.matrix;
+        this._ctx.fillStyle = this.getFillStyle(polyomino.symmetryNumber);
+
+        for (let rowIndex: number = 0; rowIndex < shapeMatrix.length; rowIndex++) {
+            for (let columnIndex: number = 0; columnIndex < shapeMatrix[0].length; columnIndex++) {
+                if (shapeMatrix[rowIndex][columnIndex]) {
+                    this._ctx.save();
+                    this._ctx.translate(xOffset, yOffset);
+                    this._ctx.fillRect(
+                        this.cellWidth * columnIndex,
+                        this.cellWidth * rowIndex,
+                        this.cellWidth - whiteBorder,
+                        this.cellWidth - whiteBorder
+                    );
+                    this._ctx.restore();
                 }
-
             }
-            //om bredden �r n�dd till h�ger. s� ska det bli en ny rad
-            offset_x += (formen[0].length + 1) * this.cellWidth;
-            if (offset_x > this.width - (formen[0].length + 1) * this.cellWidth) {
-                offset_x = this.cellWidth;
-                offset_y += (maxShapeHeight + 1) * this.cellWidth;
-                maxShapeHeight = 0;
-
-            }
-            //}
-
-            this._ctx.restore();
-            this._ctx.save();
-            this._ctx.translate(offset_x, offset_y);
         }
-        this._ctx.restore();
+    }
 
+    private clearCanvas(): void {
+        this._ctx.clearRect(0, 0, this.width, this.height);
     }
 
     private getFillStyle(symmetryNumber: number): string {
@@ -173,15 +169,17 @@ export class View implements Observer {
     }
 
     private decreaseCellSize(): void {
-        if (this.cellWidth > 1) {
-            this.cellWidth -= 3;
+        this.cellWidth -= 2;
+        if (this.cellWidth < 2) {
+            this.cellWidth = 2;
         }
         this.drawPolyominosWithSize(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
     }
 
     private increaseCellSize(): void {
-        if (this.cellWidth < 40) {
-            this.cellWidth += 3;
+        this.cellWidth += 2;
+        if (this.cellWidth > 40) {
+            this.cellWidth = 40;
         }
         this.drawPolyominosWithSize(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
     }
