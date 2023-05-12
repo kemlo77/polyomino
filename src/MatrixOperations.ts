@@ -1,9 +1,9 @@
 export function transpose<Type>(matrix: Type[][]): Type[][] {
     const newArrayOfArrays: Type[][] = [];
-    for (let column: number = 0; column < matrix[0].length; column++) {
+    for (let col: number = 0; col < matrix[0].length; col++) {
         const newRow: Type[] = [];
         for (let row: number = 0; row < matrix.length; row++) {
-            newRow.push(matrix[row][column]);
+            newRow.push(matrix[row][col]);
         }
         newArrayOfArrays.push(newRow);
     }
@@ -46,9 +46,9 @@ export function matrixesAreEqual<Type>(matrix1: Type[][], matrix2: Type[][]): bo
     if (matrix1[0].length !== matrix2[0].length) {
         return false;
     }
-    for (let r: number = 0; r < matrix1.length; r++) {
-        for (let s: number = 0; s < matrix1[0].length; s++) {
-            if (matrix1[r][s] !== matrix2[r][s]) {
+    for (let row: number = 0; row < matrix1.length; row++) {
+        for (let col: number = 0; col < matrix1[0].length; col++) {
+            if (matrix1[row][col] !== matrix2[row][col]) {
                 return false;
             }
         }
@@ -88,9 +88,9 @@ export function diagonalReflectionSymmetry135<Type>(matrix: Type[][]): boolean {
     if (matrix.length !== matrix[0].length) {
         return false;
     }
-    for (let x: number = 1; x < matrix.length; x++) {
-        for (let y: number = 0; y < x; y++) {
-            if (matrix[x][y] !== matrix[y][x]) {
+    for (let row: number = 1; row < matrix.length; row++) {
+        for (let col: number = 0; col < row; col++) {
+            if (matrix[row][col] !== matrix[col][row]) {
                 return false;
             }
         }
@@ -104,9 +104,9 @@ export function diagonalReflectionSymmetry45<Type>(matrix: Type[][]): boolean {
         return false;
     }
 
-    for (let x: number = 0; x < matrix.length - 1; x++) {
-        for (let y: number = 0; y < matrix.length - x - 1; y++) {
-            if (matrix[x][y] !== matrix[matrix.length - y - 1][matrix.length - x - 1]) {
+    for (let row: number = 0; row < matrix.length - 1; row++) {
+        for (let col: number = 0; col < matrix.length - row - 1; col++) {
+            if (matrix[row][col] !== matrix[matrix.length - col - 1][matrix.length - row - 1]) {
                 return false;
             }
         }
@@ -116,9 +116,9 @@ export function diagonalReflectionSymmetry45<Type>(matrix: Type[][]): boolean {
 
 
 export function xAxisSymmetry<Type>(matrix: Type[][]): boolean {
-    for (let x: number = 0; x < Math.floor(matrix.length / 2); x++) {
-        for (let y: number = 0; y < matrix[0].length; y++) {
-            if (matrix[x][y] !== matrix[matrix.length - 1 - x][y]) { return false; }
+    for (let row: number = 0; row < Math.floor(matrix.length / 2); row++) {
+        for (let col: number = 0; col < matrix[0].length; col++) {
+            if (matrix[row][col] !== matrix[matrix.length - 1 - row][col]) { return false; }
         }
     }
     return true;
@@ -126,9 +126,9 @@ export function xAxisSymmetry<Type>(matrix: Type[][]): boolean {
 
 
 export function yAxisSymmetry<Type>(matrix: Type[][]): boolean {
-    for (let x: number = 0; x < matrix.length; x++) {
-        for (let y: number = 0; y < Math.floor(matrix[0].length / 2); y++) {
-            if (matrix[x][y] !== matrix[x][matrix[0].length - 1 - y]) { return false; }
+    for (let row: number = 0; row < matrix.length; row++) {
+        for (let col: number = 0; col < Math.floor(matrix[0].length / 2); col++) {
+            if (matrix[row][col] !== matrix[row][matrix[0].length - 1 - col]) { return false; }
         }
     }
     return true;
@@ -136,9 +136,9 @@ export function yAxisSymmetry<Type>(matrix: Type[][]): boolean {
 
 
 export function rotationalSymmetryOfOrderTwo<Type>(matrix: Type[][]): boolean {
-    for (let x: number = 0; x < Math.ceil(matrix.length / 2); x++) {
-        for (let y: number = 0; y < matrix[0].length; y++) {
-            if (matrix[x][y] !== matrix[matrix.length - 1 - x][matrix[0].length - 1 - y]) { return false; }
+    for (let row: number = 0; row < Math.ceil(matrix.length / 2); row++) {
+        for (let col: number = 0; col < matrix[0].length; col++) {
+            if (matrix[row][col] !== matrix[matrix.length - 1 - row][matrix[0].length - 1 - col]) { return false; }
         }
     }
     return true;
@@ -150,14 +150,14 @@ export function rotationalSymmetryOfOrderFour<Type>(matrix: Type[][]): boolean {
         return false;
     }
 
-    for (let x: number = 0; x < Math.ceil(matrix.length / 2); x++) {
-        for (let y: number = 0; y < Math.ceil(matrix[0].length / 2); y++) {
+    for (let row: number = 0; row < Math.ceil(matrix.length / 2); row++) {
+        for (let col: number = 0; col < Math.ceil(matrix[0].length / 2); col++) {
             //top right
-            if (matrix[x][y] !== matrix[y][matrix[0].length - 1 - x]) { return false; }
+            if (matrix[row][col] !== matrix[col][matrix[0].length - 1 - row]) { return false; }
             //lower right
-            if (matrix[x][y] !== matrix[matrix.length - 1 - x][matrix[0].length - 1 - y]) { return false; }
+            if (matrix[row][col] !== matrix[matrix.length - 1 - row][matrix[0].length - 1 - col]) { return false; }
             //lower left
-            if (matrix[x][y] !== matrix[matrix.length - 1 - y][x]) { return false; }
+            if (matrix[row][col] !== matrix[matrix.length - 1 - col][row]) { return false; }
         }
     }
     return true;
@@ -167,8 +167,8 @@ export function rotationalSymmetryOfOrderFour<Type>(matrix: Type[][]): boolean {
 export function createPaddedMatrix<Type>(matrix: Type[][], paddingValue: Type): Type[][] {
     const newMatrix: Type[][] = [];
     newMatrix.push(Array(matrix[0].length + 2).fill(paddingValue));
-    for (let x: number = 0; x < matrix.length; x++) {
-        newMatrix.push([paddingValue].concat(matrix[x], paddingValue));
+    for (let row: number = 0; row < matrix.length; row++) {
+        newMatrix.push([paddingValue].concat(matrix[row], paddingValue));
     }
     newMatrix.push(Array(matrix[0].length + 2).fill(paddingValue));
     return newMatrix;
@@ -189,8 +189,8 @@ export function removePaddingFromMatrix<Type>(matrix: Type[][], paddingValue: Ty
     const columnStartIndex: number = firstColumn.some(valueIsNotPaddingValue) ? 0 : 1;
     const columnStopIndex: number = lastColumn.some(valueIsNotPaddingValue) ? Infinity : -1;
 
-    for (let n: number = rowStartIndex; n < rowEndIndex; n++) {
-        newUnpaddedMatrix.push(matrix[n].slice(columnStartIndex, columnStopIndex));
+    for (let rowIndex: number = rowStartIndex; rowIndex < rowEndIndex; rowIndex++) {
+        newUnpaddedMatrix.push(matrix[rowIndex].slice(columnStartIndex, columnStopIndex));
     }
 
     return newUnpaddedMatrix;

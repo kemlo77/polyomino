@@ -1,5 +1,5 @@
 # A Polyomino Generator
-This is originally a project I made in june 2011. I thougt i might be fun to refactor it.
+This is originally a project I made in june 2011. Then I refactored it in may 2023.
 
 ## How
 Developed in Typescript and taking advantage of the HTMLCanvasElement.

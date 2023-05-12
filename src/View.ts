@@ -49,11 +49,13 @@ export class View implements Observer {
         const size: number = this._model.getLargestGeneratedSize();
         this.addPolyominoSizeToSelect(size);
         this.drawPolyominosWithSize(size);
-        this.displayPolyominoSizeInfo(size);
     }
 
     private addPolyominoSizeToSelect(size: number): void {
-        const optionText: string = `Size ${String(size)} - ${this.getNameForPolyominoSize(size)}`;
+        const variantsOfSize: number = this._model.getAllPolyominosWithSize(size).length;
+        const sizeName: string = this.getNameForPolyominoSize(size);
+        const optionText: string =
+            `Size ${String(size)} - ${sizeName} (${variantsOfSize} variant${variantsOfSize > 1 ? 's' : ''})`;
         this._selectElement.options[this._selectElement.options.length] =
             new Option(optionText, String(size));
         //select the added value in the list
@@ -187,19 +189,10 @@ export class View implements Observer {
 
     private increaseCellSize(): void {
         this.cellWidth += 2;
-        if (this.cellWidth > 40) {
-            this.cellWidth = 40;
+        if (this.cellWidth > 80) {
+            this.cellWidth = 80;
         }
         this.drawPolyominosWithSize(this._model.getLargestGeneratedSize()); //todo: rita den grupp vald idropdown
-    }
-
-    private displayPolyominoSizeInfo(sizeGroup: number): void {
-        const numberOfVariants: number = this._model.getAllPolyominosWithSize(sizeGroup).length;
-        const timeConsumed: string = this._model.getTimeConsumedForGeneratingSize(sizeGroup);
-        const infoString: string =
-            `Polyomino of size ${sizeGroup} has ${numberOfVariants} variants and took ${timeConsumed} to generate.`;
-
-        document.getElementById('calculationInfo').innerHTML = infoString;
     }
 
     public updateBecauseWindowIsResized(): void {
