@@ -8,7 +8,7 @@ const model: Model = new Model();
 const view: View = new View(model);
 model.attachObserver(view);
 
-document.getElementById('startButton').addEventListener('click', () => model.generateNextPolyominoSizeGroup());
+document.getElementById('startButton').addEventListener('click', () => model.generateNextPolyominoSize());
 
 window.addEventListener('load', () => view.updateBecauseWindowIsResized());
 window.addEventListener('resize', () => view.delayedUpdateBecauseWindowIsResized());

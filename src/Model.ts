@@ -27,42 +27,44 @@ export class Model implements Subject {
         this._observers.forEach(observer => observer.update());
     }
 
-    generateNextPolyominoSizeGroup(): void {
+    generateNextPolyominoSize(): void {
         const timer: Timer = Timer.startNewTimer();
-        const foundPolyominosOfCurrentSize: Polyomino[] = [];
-        this._polyominoSizeGroups[this._polyominoSizeGroups.length - 1]
-            .forEach(currentSizePolyomino => {
+        const foundPolyominosOfNewSize: Polyomino[] = [];
+        const largestSizeGroup: Polyomino[] = this._polyominoSizeGroups[this._polyominoSizeGroups.length - 1];
+
+        largestSizeGroup
+            .forEach((currentSizePolyomino, index) => {
                 currentSizePolyomino
                     .generateNextSizePolyominosFromThis()
                     .forEach(nextSizePolyomino => {
-                        const alreadyFound: boolean = foundPolyominosOfCurrentSize.some(foundPolyomino =>
+                        const alreadyFound: boolean = foundPolyominosOfNewSize.some(foundPolyomino =>
                             nextSizePolyomino.isEqualToOtherIfFlippedAndOrRotaded(foundPolyomino));
                         if (!alreadyFound) {
-                            foundPolyominosOfCurrentSize.push(nextSizePolyomino);
+                            foundPolyominosOfNewSize.push(nextSizePolyomino);
                         }
                     });
             });
 
-        this._polyominoSizeGroups.push(foundPolyominosOfCurrentSize);
+        this._polyominoSizeGroups.push(foundPolyominosOfNewSize);
         this._calculationTime.push(timer.stopTimerAndGetTimePassed());
 
         this.notify();
     }
 
 
-    get largestGeneratedSizeGroup(): Polyomino[] {
-        return this._polyominoSizeGroups[this._polyominoSizeGroups.length - 1];
+    get largestGeneratedSize(): Polyomino[] {
+        return this._polyominoSizeGroups[this._polyominoSizeGroups.length - 1].slice();
     }
 
-    getNumberOfGeneratedSizeGroups(): number {
+    getLargestGeneratedSize(): number {
         return this._polyominoSizeGroups.length;
     }
 
     getAllPolyominosWithSize(size: number): Polyomino[] {
-        return this._polyominoSizeGroups[size - 1];
+        return this._polyominoSizeGroups[size - 1].slice();
     }
 
-    getTimeConsumedForGroupWithSize(size: number): string {
+    getTimeConsumedForGeneratingSize(size: number): string {
         return this._calculationTime[size - 1];
     }
 

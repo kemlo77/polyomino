@@ -19,7 +19,7 @@ export class View implements Observer {
         this._canvasElement = document.getElementById('canvas') as HTMLCanvasElement;
 
         this._selectElement = document.getElementById('generationListan') as HTMLSelectElement;
-        this._selectElement.addEventListener('change', () => this.showSelectedSizeGroup());
+        this._selectElement.addEventListener('change', () => this.showSelectedSize());
 
         this._plusButton = document.getElementById('plusButton') as HTMLButtonElement;
         this._plusButton.addEventListener('click', () => this.increaseCellSize());
@@ -30,7 +30,7 @@ export class View implements Observer {
         this._ctx = this._canvasElement.getContext('2d');
         this._model = model;
 
-        this.updateViewWithLargestGeneratedSizeGroup();
+        this.updateViewWithLargestGeneratedSize();
     }
 
     get height(): number {
@@ -42,25 +42,25 @@ export class View implements Observer {
     }
 
     update(): void {
-        this.updateViewWithLargestGeneratedSizeGroup();
+        this.updateViewWithLargestGeneratedSize();
     }
 
-    private updateViewWithLargestGeneratedSizeGroup(): void {
-        const largestGeneratedSizeGroup: number = this._model.getNumberOfGeneratedSizeGroups();
-        this.addPolyominoSizeGroupToSelect(largestGeneratedSizeGroup);
-        this.drawPolyominosWithSize(largestGeneratedSizeGroup);
-        this.displayPolyominoSizeGroupInfo(largestGeneratedSizeGroup);
+    private updateViewWithLargestGeneratedSize(): void {
+        const size: number = this._model.getLargestGeneratedSize();
+        this.addPolyominoSizeToSelect(size);
+        this.drawPolyominosWithSize(size);
+        this.displayPolyominoSizeInfo(size);
     }
 
-    private addPolyominoSizeGroupToSelect(size: number): void {
-        const optionText: string = `Size ${String(size)} - ${this.getNameForGroupWithSize(size)}`;
+    private addPolyominoSizeToSelect(size: number): void {
+        const optionText: string = `Size ${String(size)} - ${this.getNameForPolyominoSize(size)}`;
         this._selectElement.options[this._selectElement.options.length] =
             new Option(optionText, String(size));
         //select the added value in the list
         this._selectElement.selectedIndex = size - 1;
     }
 
-    private getNameForGroupWithSize(size: number): string {
+    private getNameForPolyominoSize(size: number): string {
         const names: string[] = [
             'monomino',
             'domino',
@@ -81,14 +81,13 @@ export class View implements Observer {
         return names[size - 1];
     }
 
-    private showSelectedSizeGroup(): void {
-        this.drawPolyominosWithSize(this.getSelectedSizeGroup());
-        this.displayPolyominoSizeGroupInfo(this.getSelectedSizeGroup());
+    private showSelectedSize(): void {
+        this.drawPolyominosWithSize(this.getSelectedSize());
     }
 
-    private getSelectedSizeGroup(): number {
-        const selectedSizeGroup: string = this._selectElement.options[this._selectElement.selectedIndex].value;
-        return Number(selectedSizeGroup);
+    private getSelectedSize(): number {
+        const selectedSize: string = this._selectElement.options[this._selectElement.selectedIndex].value;
+        return Number(selectedSize);
     }
 
 
@@ -155,24 +154,24 @@ export class View implements Observer {
 
     private getFillStyle(symmetryNumber: number): string {
         switch (symmetryNumber) {
-            case 0:
-                return 'rgba(170,170,170,1)';
-            case 1:
-            case 2:
-                return 'rgba(221,153,153,1)';
-            case 4:
-            case 8:
-                return 'rgba(170,221,170,1)';
-            case 16:
-                return 'rgba(170,170,221,1)';
-            case 19:
-                return 'rgba(204,170,204,1)';
-            case 28:
-                return 'rgba(255,153,119,1)';
-            case 48:
+            case 0: //no symmetry
+                return 'rgba(170,170,170,1)'; //gray
+            case 1: //reflection symmetry aligned with grid lines
+            case 2: //reflection symmetry aligned with grid lines
+                return 'rgba(221,153,153,1)'; //pink
+            case 4: //reflection symmetry aligned with diagonals
+            case 8: //reflection symmetry aligned with diagonals
+                return 'rgba(170,221,170,1)'; //green
+            case 16: //point symmetry, rotational symmetry of order 2
+                return 'rgba(170,170,221,1)'; //blue
+            case 19: //two axis of symmetry aligned with grid lines
+                return 'rgba(204,170,204,1)'; //purple
+            case 28: //two axis of symmetry aligned with diagonals
+                return 'rgba(255,153,119,1)'; //orange
+            case 48: //rotational symmetry of order 4
                 return 'rgba(255,204,102,1)'; //yellow
-            case 63:
-                return 'rgba(136,204,204,1)';
+            case 63: ////four axis of symmetry and rotational symmetry of order 4
+                return 'rgba(136,204,204,1)'; //cyan
             default:
                 return 'rgba(0,0,255,1)';
         }
@@ -183,7 +182,7 @@ export class View implements Observer {
         if (this.cellWidth < 2) {
             this.cellWidth = 2;
         }
-        this.drawPolyominosWithSize(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
+        this.drawPolyominosWithSize(this._model.getLargestGeneratedSize()); //todo: rita den grupp vald idropdown
     }
 
     private increaseCellSize(): void {
@@ -191,12 +190,12 @@ export class View implements Observer {
         if (this.cellWidth > 40) {
             this.cellWidth = 40;
         }
-        this.drawPolyominosWithSize(this._model.getNumberOfGeneratedSizeGroups()); //todo: rita den grupp vald idropdown
+        this.drawPolyominosWithSize(this._model.getLargestGeneratedSize()); //todo: rita den grupp vald idropdown
     }
 
-    private displayPolyominoSizeGroupInfo(sizeGroup: number): void {
+    private displayPolyominoSizeInfo(sizeGroup: number): void {
         const numberOfVariants: number = this._model.getAllPolyominosWithSize(sizeGroup).length;
-        const timeConsumed: string = this._model.getTimeConsumedForGroupWithSize(sizeGroup);
+        const timeConsumed: string = this._model.getTimeConsumedForGeneratingSize(sizeGroup);
         const infoString: string =
             `Polyomino of size ${sizeGroup} has ${numberOfVariants} variants and took ${timeConsumed} to generate.`;
 
@@ -207,7 +206,7 @@ export class View implements Observer {
         this._canvasElement.width = window.innerWidth - 32;
         this._canvasElement.height = window.innerHeight - 64;
 
-        this.showSelectedSizeGroup();
+        this.showSelectedSize();
     }
 
 
