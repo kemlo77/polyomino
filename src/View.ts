@@ -184,7 +184,7 @@ export class View implements Observer {
         if (this.cellWidth < 2) {
             this.cellWidth = 2;
         }
-        this.drawPolyominosWithSize(this._model.getLargestGeneratedSize()); //todo: rita den grupp vald idropdown
+        this.drawPolyominosWithSize(this.getSelectedSize()); //todo: rita den grupp vald idropdown
     }
 
     private increaseCellSize(): void {
@@ -192,7 +192,7 @@ export class View implements Observer {
         if (this.cellWidth > 80) {
             this.cellWidth = 80;
         }
-        this.drawPolyominosWithSize(this._model.getLargestGeneratedSize()); //todo: rita den grupp vald idropdown
+        this.drawPolyominosWithSize(this.getSelectedSize()); //todo: rita den grupp vald idropdown
     }
 
     public updateBecauseWindowIsResized(): void {
